@@ -127,10 +127,11 @@ function isTriangle(a, b, c) {
  *
  */
 function doRectanglesOverlap(rect1, rect2) {
-  return !(rect2.left > rect1.width
+  const isOverplap = !(rect2.left > rect1.width
     || rect2.width < rect1.left
     || rect2.top > rect1.height
     || rect2.height < rect1.top);
+  return isOverplap;
 }
 
 /**
@@ -161,7 +162,10 @@ function doRectanglesOverlap(rect1, rect2) {
  */
 function isInsideCircle(circle, point) {
   const dist = Math.sqrt((point.x - circle.center.x) ** 2 + (point.y - circle.center.y) ** 2);
-  return dist < circle.radius;
+  let isInside;
+  if (dist < circle.radius) isInside = true;
+  else isInside = false;
+  return isInside;
   // throw new Error('Not implemented');
 }
 
