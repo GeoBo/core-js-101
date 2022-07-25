@@ -20,8 +20,9 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  // throw new Error('Not implemented');
+  return { width, height, getArea: () => width * height };
 }
 
 
@@ -35,8 +36,9 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  // throw new Error('Not implemented');
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +53,9 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const jsonObj = JSON.parse(json);
+  return Object.create(proto, Object.getOwnPropertyDescriptors(jsonObj));
 }
 
 
@@ -111,32 +114,66 @@ function fromJSON(/* proto, json */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  output: '',
+  calls: '',
+  element(value) {
+    const obj = { ...this };
+    obj.output += value;
+    if (obj.calls.includes('element')) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    else if (obj.calls) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element" if selector parts arranged in an invalid order');
+    obj.calls += 'element';
+    return obj;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const obj = { ...this };
+    obj.output += `#${value}`;
+    if (obj.calls.includes('#id')) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    else if (obj.calls && !obj.calls.startsWith('element')) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element" if selector parts arranged in an invalid order');
+    obj.calls += '#id';
+    return obj;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const obj = { ...this };
+    obj.output += `.${value}`;
+    obj.calls += '.class';
+    if (obj.calls.includes('attr') || obj.calls.includes(':pseudoClass') || obj.calls.includes(':pseudoElement')) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element" if selector parts arranged in an invalid order');
+    return obj;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const obj = { ...this };
+    obj.output += `[${value}]`;
+    obj.calls += '[attr]';
+    if (obj.calls.includes(':pseudoClass') || obj.calls.includes(':pseudoElement')) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element" if selector parts arranged in an invalid order');
+    return obj;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const obj = { ...this };
+    obj.output += `:${value}`;
+    obj.calls += ':pseudoClass';
+    if (obj.calls.includes(':pseudoElement')) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element" if selector parts arranged in an invalid order');
+    return obj;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const obj = { ...this };
+    obj.output += `::${value}`;
+    if (obj.calls.includes('::pseudoElement')) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    obj.calls += '::pseudoElement';
+    return obj;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const obj = { ...this };
+    obj.output += `${selector1.output} ${combinator} ${selector2.output}`;
+    return obj;
+  },
+
+  stringify() {
+    return this.output;
   },
 };
 
